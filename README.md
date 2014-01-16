@@ -30,7 +30,7 @@ Jan, 2014
 
 Final display (Random Grid in Red; Rectangles Drawn in Blue): 
 
-![ScreenShot](https://raw.github.com/jhiker/maxrect.py/Screenshot.png)
+![ScreenShot](https://raw.github.com/jhiker/Maxrect.py/master/Screenshot.png)
 
          Random Grid:
 [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1]
