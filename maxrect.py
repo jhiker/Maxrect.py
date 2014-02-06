@@ -62,41 +62,31 @@ def find_corresponding_concave_points(grid, line_dict={}, nodes=[]):
                 if 4<grid[axis_line][corr_left]<8 and (axis_line, corr_left, ver_bool) not in line_dict:
                     end= find_end(grid[axis_line], corr_left, [0]+range(2, 5))
                     corr_right= max([0]+[j for j in range(corr_left+1, end) if grid[axis_line][j] in range(5,8)])
-                    if corr_right and 1 in grid[axis_line][corr_left:corr_right]: 
+                    if corr_right and (1 in grid[axis_line][corr_left:corr_right]): 
                         node=Node(ver_bool, axis_line, corr_left, corr_right)
                         nodes.append(node)
                         for spot in range(corr_left+1, corr_right):
                             if ver_bool and (spot, axis_line, 0) in line_dict: 
-                                #If vertical and point is in keys of line as horizontal, add link
+                                #If vertical and point is in keys of line as horizontal
                                 node.addlink(line_dict[(spot, axis_line, 0)])
                             line_dict[(axis_line, spot, ver_bool)]=node
     return set(nodes)
 
 
-def find_edges(new_grid):
-    '''Returns all the corners in a given grid'''
-    edges_dict= {}
-    grids= new_grid, invert_grid(new_grid)
-    for r_count, row in enumerate(new_grid):
-        for c_count, cell in enumerate(row):
-            vertical_bool= lambda val_: (c_count<0  or row[c_count-1] or c_count<len(row)-1 or row[c_count+1]) is 0 
-
-            #Order matters (avoid index error): litmus test for whether ver or hor
-            if cell is 4 or 2:
-                grid=grids[vertical_bool]
-                search_row = grid[(r_count, c_count)[vertical_bool]]
-                for begin_or_end, range_ in enumerate((c_count, len(row)), (c_count, 0, -1)):
-                    for search in range(range_):
-                        if row[search]!=cell:
-                            (begin, end)[begin_or_end]=search -1 if cell==4 and search_row[search] is 6 or 5 or 0 else search
-                            
-                            break
-                        order_ = reversed if vertical_bool else list
-                        corner_set |= set( map(lambda x: tuple(order_(x)), [(r_count, begin), (r_count, end)]))
-    return corner_set
-                    
-
-
+def find_corners(new_grid):
+    '''Returns all the corners in a given transformed grid'''
+    corner_dict={}
+    corners= [(x, y) for x in range(len(new_grid)) for y in range(len(new_grid[x])) if new_grid[x][y] is 3]
+    for corner in corners:
+        '''Searches all 3's (corners) and identifies those forming bottom-left corner of rect, then finds closest respective point''' 
+        x,y=corner
+        for side in [(-1, -1), (1, 1), (1, -1), (-1, 1)]:
+            hor, ver= side 
+            if x+hor <len(new_grid) and y+ver<len(new_grid[0]) and (new_grid[x+hor][y] and new_grid[x][y+ver]) is 2: 
+                corner_dict[corner]= ("right", "left")[side[1]] + ("top", "bottom")[side[0]]
+            
+            # 3's all bounded by two twos on adjacent sides--which sides reflects what corner of rect
+    return corner_dict
 
 
 def add_lines(grid, table, count=0):
@@ -106,7 +96,7 @@ def add_lines(grid, table, count=0):
             count+=1
             (drawer, grid_form)=(plt.vlines, invert_grid(grid)) if node.vertical else (plt.hlines, grid)
             drawer (node.axis_fixed, node.pointa, node.pointb, linewidth=2, color='b')
-            grid_form[node.axis_fixed][node.pointa:node.pointb+1]=[2]*(1+node.pointb-node.pointa)
+            grid_form[node.axis_fixed][node.pointa:node.pointb+1]=[3]+[2]*(node.pointb-node.pointa-1)+[3]
             if node.vertical: grid=invert_grid(grid_form)
     return grid, count
 
@@ -129,7 +119,6 @@ def draw_new_lines(grid, count=0):
                         #Draws backwards (right to left or top down) as well
                         begin, end= len(row)- find_end(list(reversed(row)), len(row)-cell_num, [0,2]), cell_num
                     else: continue
-                    count+=1
                     drawer(row_num, begin, end, linewidth=2, color='b')
                     grid_form[row_num][begin:end+1] = [2]*(end-begin+1)
                     if ver_bool: grid=invert_grid(grid_form)
